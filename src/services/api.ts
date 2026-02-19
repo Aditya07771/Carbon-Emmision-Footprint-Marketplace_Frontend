@@ -9,12 +9,21 @@ class ApiService {
     this.baseUrl = API_BASE_URL;
   }
 
+  /**
+   * Core request method that handles double-slash prevention, 
+   * form-data detection, and error handling.
+   */
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
     walletAddress?: string
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+    // 1. Remove trailing slashes from baseUrl
+    const cleanBaseUrl = this.baseUrl.replace(/\/$/, '');
+    // 2. Ensure endpoint starts with a single slash
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    // 3. Combine them safely
+    const url = `${cleanBaseUrl}${cleanEndpoint}`;
 
     const isFormData = options.body instanceof FormData;
     const defaultHeaders: HeadersInit = isFormData 
@@ -87,20 +96,6 @@ class ApiService {
     });
   }
 
-  // ============ IPFS API ============
-  async uploadToIpfs(files: File[]) {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file); // Make sure 'files' matches your backend multer field name
-    });
-
-    // We don't need a wallet address for this specific call, just form data
-    return this.request<{ success: boolean; ipfsHash: string }>('/ipfs/upload', {
-      method: 'POST',
-      body: formData,
-    });
-  }
-
   async registerBusiness(data: {
     walletAddress: string;
     organizationName: string;
@@ -128,6 +123,21 @@ class ApiService {
     return this.request(`/users/profile/${walletAddress}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  }
+
+  // ============ IPFS API ============
+  async uploadToIpfs(files: File[]) {
+    const formData = new FormData();
+    files.forEach(file => {
+      // Make sure 'files' matches your backend multer field name
+      formData.append('files', file); 
+    });
+
+    // We don't need a wallet address for this specific call, just form data
+    return this.request<{ success: boolean; ipfsHash: string }>('/ipfs/upload', {
+      method: 'POST',
+      body: formData,
     });
   }
 
@@ -163,9 +173,8 @@ class ApiService {
     return this.request('/users/businesses');
   }
 
-  // ... keep all your existing methods (issueCredits, getListings, etc.)
-  
   // ============ CREDITS API ============
+  
   async issueCredits(data: any, walletAddress: string) {
     return this.request('/credits/issue', {
       method: 'POST',
@@ -182,11 +191,13 @@ class ApiService {
     if (filters?.status) params.append('status', filters.status);
     if (filters?.verifier) params.append('verifier', filters.verifier);
     if (filters?.projectType) params.append('projectType', filters.projectType);
+    
     const query = params.toString() ? `?${params.toString()}` : '';
     return this.request(`/credits${query}`);
   }
 
   // ============ MARKETPLACE API ============
+  
   async getListings() {
     return this.request('/marketplace');
   }
@@ -213,6 +224,7 @@ class ApiService {
   }
 
   // ============ RETIREMENT API ============
+  
   async retireCredits(data: any) {
     return this.request('/retirements/retire', {
       method: 'POST',
@@ -229,6 +241,7 @@ class ApiService {
   }
 
   // ============ EXPLORER API ============
+  
   async getCompanyDashboard(walletAddress: string) {
     return this.request(`/explorer/company/${walletAddress}`);
   }
@@ -238,6 +251,7 @@ class ApiService {
   }
 
   // ============ HEALTH CHECK ============
+  
   async healthCheck() {
     return this.request('/health');
   }
