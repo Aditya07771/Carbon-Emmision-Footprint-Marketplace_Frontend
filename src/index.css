@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* CarbonChain Design System */
+    --background: 150 30% 8%;
+    --foreground: 145 25% 90%;
+
+    --card: 150 20% 12%;
+    --card-foreground: 145 25% 90%;
+
+    --popover: 150 20% 12%;
+    --popover-foreground: 145 25% 90%;
+
+    --primary: 153 38% 42%;
+    --primary-foreground: 150 30% 8%;
+
+    --secondary: 150 18% 16%;
+    --secondary-foreground: 145 25% 90%;
+
+    --muted: 150 12% 20%;
+    --muted-foreground: 150 10% 55%;
+
+    --accent: 43 75% 46%;
+    --accent-foreground: 150 30% 8%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 155 15% 25%;
+    --input: 155 15% 25%;
+    --ring: 153 38% 42%;
+
+    --radius: 0.75rem;
+
+    /* CarbonChain Custom Tokens */
+    --forest-dark: 150 30% 8%;
+    --forest-primary: 152 40% 18%;
+    --leaf-green: 153 38% 52%;
+    --parchment: 33 25% 92%;
+    --amber-gold: 43 75% 46%;
+    --cream: 35 30% 96%;
+    --smoke: 160 25% 22%;
+    --text-light: 125 40% 93%;
+    --text-dark: 150 28% 14%;
+
+    --sidebar-background: 150 30% 8%;
+    --sidebar-foreground: 145 25% 90%;
+    --sidebar-primary: 153 38% 42%;
+    --sidebar-primary-foreground: 150 30% 8%;
+    --sidebar-accent: 150 18% 16%;
+    --sidebar-accent-foreground: 145 25% 90%;
+    --sidebar-border: 155 15% 25%;
+    --sidebar-ring: 153 38% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+  .font-body {
+    font-family: 'DM Sans', sans-serif;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .font-accent {
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  /* Grain overlay */
+  .grain-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+  }
+
+  /* Dot grid pattern */
+  .dot-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    pointer-events: none;
+    background-image: radial-gradient(circle, hsl(var(--leaf-green)) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+
+  /* Glassmorphism card */
+  .glass-card {
+    @apply backdrop-blur-xl border rounded-xl;
+    background: hsl(var(--forest-dark) / 0.6);
+    border-color: hsl(var(--leaf-green) / 0.2);
+  }
+
+  /* Pulse ring for wallet button */
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 hsl(var(--leaf-green) / 0.5); }
+    70% { box-shadow: 0 0 0 10px hsl(var(--leaf-green) / 0); }
+    100% { box-shadow: 0 0 0 0 hsl(var(--leaf-green) / 0); }
+  }
+  .pulse-ring {
+    animation: pulse-ring 2s infinite;
+  }
+
+  /* Section label style */
+  .section-label {
+    @apply font-mono text-xs tracking-[0.25em] uppercase;
+    color: hsl(var(--amber-gold));
+  }
+
+  /* Card hover lift */
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  .card-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px -15px hsl(var(--forest-dark) / 0.5);
+  }
+
+  /* Counter number style */
+  .stat-number {
+    @apply font-mono font-bold;
+    color: hsl(var(--amber-gold));
+  }
+
+  /* Typewriter cursor */
+  @keyframes blink-cursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .cursor-blink::after {
+    content: '█';
+    animation: blink-cursor 1s step-end infinite;
+    color: hsl(var(--leaf-green));
+  }
+
+  /* Blob animation */
+  @keyframes blob-morph {
+    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    50% { border-radius: 50% 60% 30% 60% / 30% 50% 70% 50%; }
+    75% { border-radius: 40% 60% 50% 70% / 60% 30% 60% 40%; }
+  }
+  .blob {
+    animation: blob-morph 12s ease-in-out infinite;
+  }
+
+  /* Scroll bounce */
+  @keyframes scroll-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+  .scroll-bounce {
+    animation: scroll-bounce 2s ease-in-out infinite;
+  }
+
+  /* Leaf particle float */
+  @keyframes particle-float {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Green glow */
+  .green-glow {
+    box-shadow: 0 0 30px hsl(var(--leaf-green) / 0.15);
+  }
+}
