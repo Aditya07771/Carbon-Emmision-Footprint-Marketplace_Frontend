@@ -87,6 +87,20 @@ class ApiService {
     });
   }
 
+  // ============ IPFS API ============
+  async uploadToIpfs(files: File[]) {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file); // Make sure 'files' matches your backend multer field name
+    });
+
+    // We don't need a wallet address for this specific call, just form data
+    return this.request<{ success: boolean; ipfsHash: string }>('/ipfs/upload', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   async registerBusiness(data: {
     walletAddress: string;
     organizationName: string;

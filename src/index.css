@@ -190,3 +190,24 @@
     box-shadow: 0 0 30px hsl(var(--leaf-green) / 0.15);
   }
 }
+
+/* ============================================================
+   Pera Wallet z-index overrides
+   Pera injects its connect/sign elements into document.body.
+   We must ensure they sit above ALL app layers.
+   ============================================================ */
+.pera-wallet-connect-modal-wrapper,
+.pera-wallet-connect-modal,
+#pera-wallet-connect-modal-wrapper,
+#pera-wallet-sign-txn-toast-wrapper,
+.pera-wallet-sign-txn-toast,
+[class*="pera-wallet"],
+[id*="pera-wallet"] {
+  z-index: 999999 !important;
+  position: relative;
+}
+
+/* Make sure the overlay backdrop covers everything */
+.pera-wallet-connect-modal-wrapper::before {
+  z-index: 999998 !important;
+}

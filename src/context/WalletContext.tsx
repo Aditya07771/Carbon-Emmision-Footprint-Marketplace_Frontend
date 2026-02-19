@@ -20,7 +20,7 @@ interface WalletContextType {
   peraWallet: PeraWalletConnect | null;
   connect: () => Promise<void>;
   disconnect: () => void;
-  signTransactions: (txnGroups: Uint8Array[][]) => Promise<Uint8Array[]>;
+  signTransactions: (txnGroups: any[][]) => Promise<Uint8Array[]>;
   // User data
   userData: UserData | null;
   isLoading: boolean;
@@ -30,7 +30,7 @@ interface WalletContextType {
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 const peraWallet = new PeraWalletConnect({
-  shouldShowSignTxnToast: true,
+  shouldShowSignTxnToast: false, // We handle signing UI ourselves with a custom modal
   chainId: 416002,
 });
 
@@ -112,10 +112,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setUserData(null);
   };
 
-  const signTransactions = async (txnGroups: Uint8Array[][]) => {
+  const signTransactions = async (txnGroups: any[][]) => {
     if (!walletAddress) throw new Error('Wallet not connected');
-    // Pera SDK typings expect Transaction but accepts Uint8Array at runtime
-    const signerGroups = txnGroups.map(group => group.map(txn => ({ txn }))) as any;
+    // FIX: Pass the raw transaction objects directly to Pera Wallet
+    const signerGroups = txnGroups.map(group => group.map(txn => ({ txn })));
     return await peraWallet.signTransaction(signerGroups);
   };
 

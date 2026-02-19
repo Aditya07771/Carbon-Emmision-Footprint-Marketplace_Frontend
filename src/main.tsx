@@ -1,16 +1,15 @@
-import { Buffer } from "buffer";
+// ADD THESE TWO LINES AT THE VERY TOP
+import { Buffer } from 'buffer';
+window.Buffer = Buffer;
 
-if (typeof window !== 'undefined') {
-  window.Buffer = Buffer;
-}
+// Your existing imports follow below...
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
 
-import React from "react";
-import ReactDOM from "react-dom/client";
-import "./index.css";
-import App from "./App";
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
-);
+  </React.StrictMode>,
+)
