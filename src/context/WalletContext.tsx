@@ -104,3 +104,78 @@ export function useWallet() {
   }
   return context;
 }
+
+
+
+// import React, { createContext, useContext, useState, useEffect } from 'react';
+// import { PeraWalletConnect } from '@perawallet/connect';
+
+// const peraWallet = new PeraWalletConnect();
+
+// interface WalletContextType {
+//   accountAddress: string | null;
+//   role: 'admin' | 'ngo' | 'business' | 'public' | null;
+//   connectWallet: () => void;
+//   disconnectWallet: () => void;
+// }
+
+// const WalletContext = createContext<WalletContextType>({
+//   accountAddress: null,
+//   role: null,
+//   connectWallet: () => {},
+//   disconnectWallet: () => {},
+// });
+
+// export const useWallet = () => useContext(WalletContext);
+
+// export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+//   const [accountAddress, setAccountAddress] = useState<string | null>(null);
+//   const [role, setRole] = useState<'admin' | 'ngo' | 'business' | 'public' | null>(null);
+
+//   useEffect(() => {
+//     // Reconnect session on reload
+//     peraWallet.reconnectSession().then((accounts) => {
+//       if (accounts.length) {
+//         setAccountAddress(accounts[0]);
+//         fetchUserRole(accounts[0]);
+//       }
+//     });
+
+//     peraWallet.connector?.on('disconnect', disconnectWallet);
+//   }, []);
+
+//   const fetchUserRole = async (address: string) => {
+//     try {
+//       const response = await fetch(`/api/users/role/${address}`);
+//       const data = await response.json();
+//       if (data.success) {
+//         setRole(data.role);
+//       }
+//     } catch (error) {
+//       console.error('Error fetching role:', error);
+//       setRole('public'); // Default fallback
+//     }
+//   };
+
+//   const connectWallet = async () => {
+//     try {
+//       const newAccounts = await peraWallet.connect();
+//       setAccountAddress(newAccounts[0]);
+//       fetchUserRole(newAccounts[0]);
+//     } catch (error) {
+//       console.error('Failed to connect to Pera Wallet:', error);
+//     }
+//   };
+
+//   const disconnectWallet = () => {
+//     peraWallet.disconnect();
+//     setAccountAddress(null);
+//     setRole(null);
+//   };
+
+//   return (
+//     <WalletContext.Provider value={{ accountAddress, role, connectWallet, disconnectWallet }}>
+//       {children}
+//     </WalletContext.Provider>
+//   );
+// };

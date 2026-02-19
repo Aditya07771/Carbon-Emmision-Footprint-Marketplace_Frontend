@@ -1,5 +1,5 @@
 // src/services/api.ts
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 class ApiService {
   private baseUrl: string;
@@ -13,7 +13,7 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -23,17 +23,27 @@ class ApiService {
     };
 
     const response = await fetch(url, config);
-    const data = await response.json();
+    const text = await response.text();
+
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(
+        `Server returned non-JSON response (HTTP ${response.status}). ` +
+        `Check that the backend is running at ${this.baseUrl}.`
+      );
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || 'API request failed');
+      throw new Error(data.error || data.message || 'API request failed');
     }
 
     return data;
   }
 
   // ============ CREDITS API ============
-  
+
   async issueCredits(data: {
     projectId: string;
     name: string;
@@ -64,7 +74,7 @@ class ApiService {
     if (filters?.status) params.append('status', filters.status);
     if (filters?.verifier) params.append('verifier', filters.verifier);
     if (filters?.projectType) params.append('projectType', filters.projectType);
-    
+
     const query = params.toString() ? `?${params.toString()}` : '';
     return this.request(`/credits${query}`);
   }
