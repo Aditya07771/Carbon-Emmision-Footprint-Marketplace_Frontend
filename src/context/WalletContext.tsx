@@ -1,6 +1,17 @@
 // src/context/WalletContext.tsx
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PeraWalletConnect } from '@perawallet/connect';
+import api from '@/services/api';
+
+interface UserData {
+  role: string;
+  status: string;
+  isRegistered: boolean;
+  organizationName?: string;
+  rejectionReason?: string;
+  sustainabilityGoals?: string;
+}
 
 interface WalletContextType {
   walletAddress: string | null;
@@ -10,36 +21,67 @@ interface WalletContextType {
   connect: () => Promise<void>;
   disconnect: () => void;
   signTransactions: (txnGroups: Uint8Array[][]) => Promise<Uint8Array[]>;
+  // User data
+  userData: UserData | null;
+  isLoading: boolean;
+  refreshUserData: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 const peraWallet = new PeraWalletConnect({
   shouldShowSignTxnToast: true,
-  chainId: 416002, // Algorand TestNet
+  chainId: 416002,
 });
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchUserData = async (address: string) => {
+    setIsLoading(true);
+    try {
+      const response = await api.getUserRole(address);
+      setUserData({
+        role: response.role,
+        status: response.status,
+        isRegistered: response.isRegistered,
+        organizationName: response.organizationName,
+        rejectionReason: response.rejectionReason
+      });
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setUserData({
+        role: 'public',
+        status: 'none',
+        isRegistered: false
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refreshUserData = async () => {
+    if (walletAddress) {
+      await fetchUserData(walletAddress);
+    }
+  };
 
   useEffect(() => {
-    // Reconnect session on page load
     peraWallet.reconnectSession()
       .then((accounts) => {
         if (accounts.length > 0) {
           setWalletAddress(accounts[0]);
-          console.log('Reconnected to wallet:', accounts[0]);
+          fetchUserData(accounts[0]);
         }
       })
-      .catch((error) => {
-        console.error('Failed to reconnect session:', error);
-      });
+      .catch(console.error);
 
-    // Listen for disconnect events
     peraWallet.connector?.on('disconnect', () => {
-      console.log('Wallet disconnected');
       setWalletAddress(null);
+      setUserData(null);
     });
 
     return () => {
@@ -53,11 +95,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const accounts = await peraWallet.connect();
       if (accounts.length > 0) {
         setWalletAddress(accounts[0]);
-        console.log('Connected to wallet:', accounts[0]);
+        await fetchUserData(accounts[0]);
       }
-    } catch (error) {
-      console.error('Failed to connect:', error);
-      throw error;
+    } catch (error: any) {
+      if (error?.data?.type !== 'CONNECT_MODAL_CLOSED') {
+        console.error('Failed to connect:', error);
+      }
     } finally {
       setIsConnecting(false);
     }
@@ -66,18 +109,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const disconnect = () => {
     peraWallet.disconnect();
     setWalletAddress(null);
-    console.log('Disconnected from wallet');
+    setUserData(null);
   };
 
   const signTransactions = async (txnGroups: Uint8Array[][]) => {
-    if (!walletAddress) {
-      throw new Error('Wallet not connected');
-    }
-
-    const signedTxns = await peraWallet.signTransaction(
-      txnGroups.map(group => group.map(txn => ({ txn })))
-    );
-    return signedTxns;
+    if (!walletAddress) throw new Error('Wallet not connected');
+    // Pera SDK typings expect Transaction but accepts Uint8Array at runtime
+    const signerGroups = txnGroups.map(group => group.map(txn => ({ txn }))) as any;
+    return await peraWallet.signTransaction(signerGroups);
   };
 
   return (
@@ -90,6 +129,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         connect,
         disconnect,
         signTransactions,
+        userData,
+        isLoading,
+        refreshUserData
       }}
     >
       {children}
@@ -99,83 +141,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
 export function useWallet() {
   const context = useContext(WalletContext);
-  if (!context) {
-    throw new Error('useWallet must be used within WalletProvider');
-  }
+  if (!context) throw new Error('useWallet must be used within WalletProvider');
   return context;
 }
-
-
-
-// import React, { createContext, useContext, useState, useEffect } from 'react';
-// import { PeraWalletConnect } from '@perawallet/connect';
-
-// const peraWallet = new PeraWalletConnect();
-
-// interface WalletContextType {
-//   accountAddress: string | null;
-//   role: 'admin' | 'ngo' | 'business' | 'public' | null;
-//   connectWallet: () => void;
-//   disconnectWallet: () => void;
-// }
-
-// const WalletContext = createContext<WalletContextType>({
-//   accountAddress: null,
-//   role: null,
-//   connectWallet: () => {},
-//   disconnectWallet: () => {},
-// });
-
-// export const useWallet = () => useContext(WalletContext);
-
-// export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-//   const [accountAddress, setAccountAddress] = useState<string | null>(null);
-//   const [role, setRole] = useState<'admin' | 'ngo' | 'business' | 'public' | null>(null);
-
-//   useEffect(() => {
-//     // Reconnect session on reload
-//     peraWallet.reconnectSession().then((accounts) => {
-//       if (accounts.length) {
-//         setAccountAddress(accounts[0]);
-//         fetchUserRole(accounts[0]);
-//       }
-//     });
-
-//     peraWallet.connector?.on('disconnect', disconnectWallet);
-//   }, []);
-
-//   const fetchUserRole = async (address: string) => {
-//     try {
-//       const response = await fetch(`/api/users/role/${address}`);
-//       const data = await response.json();
-//       if (data.success) {
-//         setRole(data.role);
-//       }
-//     } catch (error) {
-//       console.error('Error fetching role:', error);
-//       setRole('public'); // Default fallback
-//     }
-//   };
-
-//   const connectWallet = async () => {
-//     try {
-//       const newAccounts = await peraWallet.connect();
-//       setAccountAddress(newAccounts[0]);
-//       fetchUserRole(newAccounts[0]);
-//     } catch (error) {
-//       console.error('Failed to connect to Pera Wallet:', error);
-//     }
-//   };
-
-//   const disconnectWallet = () => {
-//     peraWallet.disconnect();
-//     setAccountAddress(null);
-//     setRole(null);
-//   };
-
-//   return (
-//     <WalletContext.Provider value={{ accountAddress, role, connectWallet, disconnectWallet }}>
-//       {children}
-//     </WalletContext.Provider>
-//   );
-// };

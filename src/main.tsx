@@ -1,6 +1,8 @@
 import { Buffer } from "buffer";
-(window as any).Buffer = Buffer;
-(window as any).global = window;
+
+if (typeof window !== 'undefined') {
+  window.Buffer = Buffer;
+}
 
 import React from "react";
 import ReactDOM from "react-dom/client";

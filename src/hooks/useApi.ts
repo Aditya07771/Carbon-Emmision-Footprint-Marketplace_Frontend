@@ -1,48 +1,19 @@
 // src/hooks/useApi.ts
+
 import { useState, useCallback } from 'react';
 import api from '@/services/api';
 
-interface ApiState<T> {
-  data: T | null;
-  loading: boolean;
-  error: string | null;
-}
-
-export function useApi<T>() {
-  const [state, setState] = useState<ApiState<T>>({
-    data: null,
-    loading: false,
-    error: null,
-  });
-
-  const execute = useCallback(async (apiCall: () => Promise<T>) => {
-    setState({ data: null, loading: true, error: null });
-    try {
-      const data = await apiCall();
-      setState({ data, loading: false, error: null });
-      return data;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'An error occurred';
-      setState({ data: null, loading: false, error: message });
-      throw error;
-    }
-  }, []);
-
-  return { ...state, execute };
-}
-
-// Specific hooks for common operations
 export function useCredits() {
   const [credits, setCredits] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCredits = useCallback(async (filters?: any) => {
+  const fetchCredits = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response: any = await api.getAllCredits(filters);
+      const response: any = await api.getAllCredits();
       setCredits(response.data || []);
-      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch credits');
     } finally {
@@ -60,10 +31,10 @@ export function useListings() {
 
   const fetchListings = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const response: any = await api.getListings();
       setListings(response.data || []);
-      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch listings');
     } finally {
@@ -82,11 +53,11 @@ export function useRetirements() {
 
   const fetchRetirements = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const response: any = await api.getAllRetirements();
       setRetirements(response.data || []);
       setTotalTonnes(response.totalTonnes || 0);
-      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch retirements');
     } finally {
