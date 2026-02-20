@@ -1,6 +1,6 @@
 // src/context/WalletContext.tsx
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { PeraWalletConnect } from '@perawallet/connect';
 import api from '@/services/api';
 
@@ -40,7 +40,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchUserData = async (address: string) => {
+  const fetchUserData = useCallback(async (address: string) => {
     setIsLoading(true);
     try {
       const response = await api.getUserRole(address);
@@ -61,7 +61,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const refreshUserData = async () => {
     if (walletAddress) {
@@ -119,21 +119,21 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     return await peraWallet.signTransaction(signerGroups);
   };
 
+  const value = useMemo(() => ({
+    walletAddress,
+    isConnected: !!walletAddress,
+    isConnecting,
+    peraWallet,
+    connect,
+    disconnect,
+    signTransactions,
+    userData,
+    isLoading,
+    refreshUserData
+  }), [walletAddress, isConnecting, userData, isLoading, connect, disconnect, signTransactions, refreshUserData]);
+
   return (
-    <WalletContext.Provider
-      value={{
-        walletAddress,
-        isConnected: !!walletAddress,
-        isConnecting,
-        peraWallet,
-        connect,
-        disconnect,
-        signTransactions,
-        userData,
-        isLoading,
-        refreshUserData
-      }}
-    >
+    <WalletContext.Provider value={value}>
       {children}
     </WalletContext.Provider>
   );

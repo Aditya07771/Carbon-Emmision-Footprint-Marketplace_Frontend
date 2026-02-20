@@ -1,4 +1,6 @@
 // src/components/dashboard/ListingCard.tsx
+import React from 'react';
+
 interface ListingCardProps {
   listing: any;
   onBuy: () => void;
@@ -8,8 +10,10 @@ interface ListingCardProps {
 }
 
 export default function ListingCard({ listing, onBuy, onCancel, isBuying, isOwner }: ListingCardProps) {
-  // Calculate equivalent flights based on 500 tonnes = 2174 flights ratio
   const flightsEquivalent = Math.round(listing.co2_tonnes * 4.348);
+
+  const truncateAddress = (addr: string) =>
+    addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : 'Unknown';
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-xl p-5 hover:border-leaf/30 transition-colors flex flex-col h-full">
@@ -26,7 +30,7 @@ export default function ListingCard({ listing, onBuy, onCancel, isBuying, isOwne
             <p className="text-xs text-white/40">ALGO</p>
           </div>
         </div>
-        
+
         <div className="space-y-2 text-sm mb-4">
           <div className="flex justify-between">
             <span className="text-white/50">CO₂</span>
@@ -42,18 +46,24 @@ export default function ListingCard({ listing, onBuy, onCancel, isBuying, isOwne
               <span className="text-white">{listing.project.verifier}</span>
             </div>
           )}
+          <div className="flex justify-between">
+            <span className="text-white/50">Seller</span>
+            <span className="text-white/70 font-mono text-xs">
+              {truncateAddress(listing.seller_wallet)}
+            </span>
+          </div>
         </div>
 
-        {/* Real-world Impact Equivalent */}
-        <div className="mb-6 bg-leaf/10 border border-leaf/20 rounded-lg p-3 flex items-start gap-3">
+        {/* Real-world Impact */}
+        <div className="mb-4 bg-leaf/10 border border-leaf/20 rounded-lg p-3 flex items-start gap-3">
           <span className="text-xl leading-none" role="img" aria-label="flight">✈️</span>
           <p className="text-xs text-leaf/90 leading-relaxed">
             <span className="font-semibold block mb-0.5">Real-world impact:</span>
-            Offsets equivalent to <span className="font-bold">{flightsEquivalent.toLocaleString()}</span> passenger flights from Mumbai to Delhi.
+            Offsets <span className="font-bold">{flightsEquivalent.toLocaleString()}</span> flights (Mumbai-Delhi)
           </p>
         </div>
       </div>
-      
+
       {isOwner ? (
         <button
           onClick={onCancel}
@@ -65,9 +75,19 @@ export default function ListingCard({ listing, onBuy, onCancel, isBuying, isOwne
         <button
           onClick={onBuy}
           disabled={isBuying}
-          className="w-full mt-auto py-2.5 rounded-lg bg-leaf text-forest-dark text-sm font-semibold hover:bg-leaf/90 transition-colors disabled:opacity-50"
+          className="w-full mt-auto py-2.5 rounded-lg bg-leaf text-forest-dark text-sm font-semibold hover:bg-leaf/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isBuying ? 'Processing...' : 'Buy Now'}
+          {isBuying ? (
+            <>
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Processing...
+            </>
+          ) : (
+            `Buy for ${listing.price_algo} ALGO`
+          )}
         </button>
       )}
     </div>

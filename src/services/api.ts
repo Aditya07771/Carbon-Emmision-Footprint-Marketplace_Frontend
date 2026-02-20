@@ -26,8 +26,8 @@ class ApiService {
     const url = `${cleanBaseUrl}${cleanEndpoint}`;
 
     const isFormData = options.body instanceof FormData;
-    const defaultHeaders: HeadersInit = isFormData 
-      ? {} 
+    const defaultHeaders: HeadersInit = isFormData
+      ? {}
       : { 'Content-Type': 'application/json' };
 
     // Add wallet address to headers if provided
@@ -131,7 +131,7 @@ class ApiService {
     const formData = new FormData();
     files.forEach(file => {
       // Make sure 'files' matches your backend multer field name
-      formData.append('files', file); 
+      formData.append('files', file);
     });
 
     // We don't need a wallet address for this specific call, just form data
@@ -174,7 +174,7 @@ class ApiService {
   }
 
   // ============ CREDITS API ============
-  
+
   async issueCredits(data: any, walletAddress: string) {
     return this.request('/credits/issue', {
       method: 'POST',
@@ -191,15 +191,16 @@ class ApiService {
     if (filters?.status) params.append('status', filters.status);
     if (filters?.verifier) params.append('verifier', filters.verifier);
     if (filters?.projectType) params.append('projectType', filters.projectType);
-    
+
     const query = params.toString() ? `?${params.toString()}` : '';
     return this.request(`/credits${query}`);
   }
 
   // ============ MARKETPLACE API ============
-  
-  async getListings() {
-    return this.request('/marketplace');
+
+  async getListings(status?: string) {
+    const query = status ? `?status=${status}` : '';
+    return this.request(`/marketplace${query}`);
   }
 
   async createListing(data: any) {
@@ -209,7 +210,16 @@ class ApiService {
     });
   }
 
-  async buyCredit(data: any) {
+  // In api.ts, update the buyCredit method:
+
+  async buyCredit(data: {
+    txnHash: string;
+    buyerWallet: string;
+    asaId: number;
+    priceAlgo?: number;
+    sellerWallet?: string;
+    optInTxnHash?: string | null;
+  }) {
     return this.request('/marketplace/buy', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -224,7 +234,7 @@ class ApiService {
   }
 
   // ============ RETIREMENT API ============
-  
+
   async retireCredits(data: any) {
     return this.request('/retirements/retire', {
       method: 'POST',
@@ -241,7 +251,7 @@ class ApiService {
   }
 
   // ============ EXPLORER API ============
-  
+
   async getCompanyDashboard(walletAddress: string) {
     return this.request(`/explorer/company/${walletAddress}`);
   }
@@ -251,7 +261,7 @@ class ApiService {
   }
 
   // ============ HEALTH CHECK ============
-  
+
   async healthCheck() {
     return this.request('/health');
   }

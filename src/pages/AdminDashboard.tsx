@@ -44,17 +44,21 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isConnected) {
+    if (isConnected === false) {
       navigate('/');
-    } else if (userData?.role !== 'admin') {
-      navigate('/marketplace');
-      toast.error('Admin access required');
+      setLoading(false);
+    } else if (userData) {
+      if (userData.role !== 'admin') {
+        navigate('/marketplace');
+        toast.error('Admin access required');
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
     }
   }, [isConnected, userData, navigate]);
 
-  useEffect(() => {
-    setLoading(false);
-  }, []);
+  // REMOVED redundant useEffect that was setting loading to false prematurely
 
   if (!isConnected || loading) {
     return (
@@ -101,9 +105,8 @@ export default function AdminDashboard() {
       <div className="flex pt-16">
         {/* Sidebar */}
         <aside
-          className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-forest-dark/95 backdrop-blur-sm border-r border-white/10 transition-all duration-300 z-30 overflow-y-auto ${
-            sidebarCollapsed ? 'w-16' : 'w-64'
-          }`}
+          className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-forest-dark/95 backdrop-blur-sm border-r border-white/10 transition-all duration-300 z-30 overflow-y-auto ${sidebarCollapsed ? 'w-16' : 'w-64'
+            }`}
         >
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -146,11 +149,10 @@ export default function AdminDashboard() {
               <button
                 key={item.id}
                 onClick={() => setActivePanel(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                  activePanel === item.id
-                    ? 'bg-purple-500/20 text-purple-400'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
-                }`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${activePanel === item.id
+                  ? 'bg-purple-500/20 text-purple-400'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
                 title={sidebarCollapsed ? item.label : undefined}
               >
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -203,7 +205,7 @@ function AdminOverview() {
 
   const fetchAdminStats = async () => {
     if (!walletAddress) return;
-    
+
     setLoading(true);
     try {
       const [userStats, credits, retirements, listings, ngos, businesses]: any = await Promise.all([
@@ -471,7 +473,7 @@ function PendingApprovals() {
 
   const fetchData = async () => {
     if (!walletAddress) return;
-    
+
     setLoading(true);
     try {
       const pendingRes: any = await api.getPendingRegistrations(walletAddress);
@@ -485,7 +487,7 @@ function PendingApprovals() {
 
   const handleApprove = async (userId: string) => {
     if (!walletAddress) return;
-    
+
     setProcessingId(userId);
     try {
       await api.approveRegistration(userId, walletAddress);
@@ -500,7 +502,7 @@ function PendingApprovals() {
 
   const handleReject = async () => {
     if (!walletAddress || !rejectModal.userId) return;
-    
+
     setProcessingId(rejectModal.userId);
     try {
       await api.rejectRegistration(rejectModal.userId, walletAddress, rejectReason);
@@ -528,21 +530,19 @@ function PendingApprovals() {
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setActiveTab('ngos')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'ngos'
-              ? 'bg-leaf text-forest-dark'
-              : 'bg-white/5 text-white/60 hover:text-white'
-          }`}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'ngos'
+            ? 'bg-leaf text-forest-dark'
+            : 'bg-white/5 text-white/60 hover:text-white'
+            }`}
         >
           NGOs ({pendingData.ngos.length})
         </button>
         <button
           onClick={() => setActiveTab('businesses')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            activeTab === 'businesses'
-              ? 'bg-blue-500 text-white'
-              : 'bg-white/5 text-white/60 hover:text-white'
-          }`}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'businesses'
+            ? 'bg-blue-500 text-white'
+            : 'bg-white/5 text-white/60 hover:text-white'
+            }`}
         >
           Businesses ({pendingData.businesses.length})
         </button>
@@ -575,15 +575,14 @@ function PendingApprovals() {
                     <h3 className="text-lg font-semibold text-white">
                       {user.organization_name}
                     </h3>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      user.role === 'ngo' 
-                        ? 'bg-leaf/20 text-leaf' 
-                        : 'bg-blue-500/20 text-blue-400'
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.role === 'ngo'
+                      ? 'bg-leaf/20 text-leaf'
+                      : 'bg-blue-500/20 text-blue-400'
+                      }`}>
                       {user.role.toUpperCase()}
                     </span>
                   </div>
-                  
+
                   <div className="grid md:grid-cols-3 gap-3 text-sm mb-3">
                     <div className="flex items-center gap-2">
                       <svg className="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -710,7 +709,7 @@ function UserManagement() {
 
   const fetchAllUsers = async () => {
     if (!walletAddress) return;
-    
+
     setLoading(true);
     try {
       // Fetch approved users from different endpoints
@@ -778,11 +777,10 @@ function UserManagement() {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
-                  filter === f
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-white/5 text-white/60 hover:text-white'
-                }`}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${filter === f
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-white/5 text-white/60 hover:text-white'
+                  }`}
               >
                 {f}
               </button>
@@ -797,11 +795,10 @@ function UserManagement() {
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
-                  statusFilter === s
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-white/5 text-white/60 hover:text-white'
-                }`}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${statusFilter === s
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-white/5 text-white/60 hover:text-white'
+                  }`}
               >
                 {s}
               </button>
@@ -858,20 +855,18 @@ function UserManagement() {
                       {user.organization_name || user.name || 'N/A'}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.role === 'ngo' ? 'bg-leaf/20 text-leaf' :
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'ngo' ? 'bg-leaf/20 text-leaf' :
                         user.role === 'business' ? 'bg-blue-500/20 text-blue-400' :
-                        'bg-purple-500/20 text-purple-400'
-                      }`}>
+                          'bg-purple-500/20 text-purple-400'
+                        }`}>
                         {user.role?.toUpperCase()}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.status === 'approved' ? 'bg-green-500/20 text-green-400' :
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.status === 'approved' ? 'bg-green-500/20 text-green-400' :
                         user.status === 'pending' ? 'bg-amber/20 text-amber' :
-                        'bg-red-500/20 text-red-400'
-                      }`}>
+                          'bg-red-500/20 text-red-400'
+                        }`}>
                         {user.status?.toUpperCase()}
                       </span>
                     </td>
@@ -1171,8 +1166,8 @@ function AllCredits() {
     }
   };
 
-  const filteredCredits = filter === 'all' 
-    ? credits 
+  const filteredCredits = filter === 'all'
+    ? credits
     : credits.filter((c) => c.status === filter);
 
   const totalTonnes = credits.reduce((sum, c) => sum + (c.co2_tonnes || 0), 0);
@@ -1229,11 +1224,10 @@ function AllCredits() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
-              filter === f
-                ? 'bg-leaf text-forest-dark'
-                : 'bg-white/5 text-white/60 hover:text-white'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${filter === f
+              ? 'bg-leaf text-forest-dark'
+              : 'bg-white/5 text-white/60 hover:text-white'
+              }`}
           >
             {f}
           </button>
@@ -1273,12 +1267,11 @@ function AllCredits() {
                     <td className="px-4 py-3 text-white/70">{credit.vintage_year}</td>
                     <td className="px-4 py-3 text-white/70 text-sm">{credit.verifier}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        credit.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${credit.status === 'active' ? 'bg-green-500/20 text-green-400' :
                         credit.status === 'listed' ? 'bg-blue-500/20 text-blue-400' :
-                        credit.status === 'sold' ? 'bg-purple-500/20 text-purple-400' :
-                        'bg-amber/20 text-amber'
-                      }`}>
+                          credit.status === 'sold' ? 'bg-purple-500/20 text-purple-400' :
+                            'bg-amber/20 text-amber'
+                        }`}>
                         {credit.status?.toUpperCase()}
                       </span>
                     </td>
@@ -1310,7 +1303,7 @@ function MarketplaceActivity() {
   const fetchListings = async () => {
     setLoading(true);
     try {
-      const response: any = await api.getListings();
+      const response: any = await api.getListings('all');
       setListings(response.data || []);
     } catch (error) {
       toast.error('Failed to load marketplace activity');
@@ -1319,8 +1312,8 @@ function MarketplaceActivity() {
     }
   };
 
-  const filteredListings = filter === 'all' 
-    ? listings 
+  const filteredListings = filter === 'all'
+    ? listings
     : listings.filter((l) => l.status === filter);
 
   const totalVolume = listings
@@ -1381,11 +1374,10 @@ function MarketplaceActivity() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
-              filter === f
-                ? 'bg-blue-500 text-white'
-                : 'bg-white/5 text-white/60 hover:text-white'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${filter === f
+              ? 'bg-blue-500 text-white'
+              : 'bg-white/5 text-white/60 hover:text-white'
+              }`}
           >
             {f}
           </button>
@@ -1427,11 +1419,10 @@ function MarketplaceActivity() {
                     <td className="px-4 py-3 text-white/70">{listing.co2_tonnes || 'N/A'}</td>
                     <td className="px-4 py-3 text-white/70">{listing.vintage_year || 'N/A'}</td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        listing.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${listing.status === 'active' ? 'bg-green-500/20 text-green-400' :
                         listing.status === 'sold' ? 'bg-purple-500/20 text-purple-400' :
-                        'bg-red-500/20 text-red-400'
-                      }`}>
+                          'bg-red-500/20 text-red-400'
+                        }`}>
                         {listing.status?.toUpperCase()}
                       </span>
                     </td>
@@ -1685,7 +1676,7 @@ function PlatformAnalytics() {
     );
   }
 
-  const offsetPercentage = analytics.totalTonnesIssued > 0 
+  const offsetPercentage = analytics.totalTonnesIssued > 0
     ? ((analytics.totalTonnesRetired / analytics.totalTonnesIssued) * 100).toFixed(1)
     : 0;
 
@@ -1780,24 +1771,24 @@ function PlatformAnalytics() {
               <span className="text-white font-semibold">{analytics.totalTonnesIssued}t</span>
             </div>
             <div className="w-full bg-white/10 rounded-full h-4 mb-2">
-              <div 
+              <div
                 className="bg-gradient-to-r from-leaf to-emerald-500 h-4 rounded-full"
                 style={{ width: '100%' }}
               />
             </div>
-            
+
             <div className="flex justify-between mb-2 mt-4">
               <span className="text-white/70">Total Retired</span>
               <span className="text-amber font-semibold">{analytics.totalTonnesRetired}t</span>
             </div>
             <div className="w-full bg-white/10 rounded-full h-4">
-              <div 
+              <div
                 className="bg-gradient-to-r from-amber to-orange-500 h-4 rounded-full"
                 style={{ width: `${Math.min(parseFloat(offsetPercentage.toString()), 100)}%` }}
               />
             </div>
           </div>
-          
+
           <div className="text-center">
             <p className="text-6xl font-bold text-leaf mb-2">{offsetPercentage}%</p>
             <p className="text-white/50 text-sm">Offset Rate</p>
@@ -1815,7 +1806,7 @@ function PlatformAnalytics() {
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-white/10 rounded-full h-6">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-leaf to-emerald-500 h-6 rounded-full flex items-center justify-end pr-2"
                       style={{ width: `${(month.credits / 50) * 100}%` }}
                     >
@@ -1826,7 +1817,7 @@ function PlatformAnalytics() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-white/10 rounded-full h-6">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-amber to-orange-500 h-6 rounded-full flex items-center justify-end pr-2"
                       style={{ width: `${(month.retirements / 30) * 100}%` }}
                     >
